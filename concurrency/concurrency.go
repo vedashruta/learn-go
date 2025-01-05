@@ -51,22 +51,22 @@ func bal() int {
 
 func Concurrency() {
 
-	// //Buffered Channel
+	// Buffered Channel
 	// ch1 := make(chan struct{}, 1)
 
-	// //UnBuffered Channel
+	// UnBuffered Channel
 	// ch2 := make(chan struct{})
 
 	// var ch3 chan struct{}
 
-	// blockingChannels()
-	// blockingChannels2()
-	// dep(100)
-	// bal()
-	// dep(200)
-	// dep(500)
-	// dep(400)
-	// dep(1)
+	blockingChannels()
+	blockingChannels2()
+	dep(100)
+	bal()
+	dep(200)
+	dep(500)
+	dep(400)
+	dep(1)
 
 	//Race condition with -race flag enabled
 	wg.Add(2)
@@ -131,6 +131,16 @@ func blockingChannels2() {
 	}
 	wg.Wait()
 	fmt.Println("completed at : ", time.Since(now))
+}
+
+func generate() <-chan int {
+	ch := make(chan int)
+	go func() {
+		for i := 1; i <= 20; i++ {
+			ch <- i
+		}
+	}()
+	return ch
 }
 
 func initOnlyOnce() {
