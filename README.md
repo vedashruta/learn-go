@@ -13,9 +13,9 @@ The code examples provided are straight forward and self explainatory, chill-out
 
 
 ## Concurrency Patterns:
-1. **Generator**:
-2. **Consumers**:
-3. **Pipeline**: A series of stages where each stage processes data and passes it to the next stage. This pattern is useful when you have a chain of computations or transformations
+1. **Generator**: Generator functions are used to generate a sequence of values.
+2. **Consumers**: Consumer consumes the value produced by Generator.
+3. **Pipeline**: A series of stages where each stage processes data and passes it to the next stage. This pattern is useful when you have a chain of computations or transformations.
 4. **Fan-Out and Fan-In Pattern**: 
    - **Fan-out**: Distribute tasks to multiple goroutines (workers) to process data concurrently.
    - **Fan-in**: Merge results from multiple goroutines into a single result.
