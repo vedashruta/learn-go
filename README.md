@@ -2,46 +2,97 @@
 
 This repository contains Go example scripts that covers a wide range of Go concepts from basic to advanced. The goal is to provide a comprehensive guide for developers looking to understand the concepts in an easy way.
 
-The code examples provided are straight forward and self explainatory, chill-out comments are provided 🥵.
+The code examples provided are straightforward and self-explanatory. Chill out <span style="color:orange; ">comments</span> are provided 🥵.
 
 ## Concepts Covered:
 1. **Variables**
 2. **Arrays**
 3. **Strings**
-4. **Fuctions**
+4. **Functions**
 5. **Concurrency**
+6. **Profiling**
 
+---
 
 ## Concurrency Patterns:
-1. **Generator**: Generator functions are used to generate a sequence of values.
-2. **Consumers**: Consumer consumes the value produced by Generator.
-3. **Pipeline**: A series of stages where each stage processes data and passes it to the next stage. This pattern is useful when you have a chain of computations or transformations.
-4. **Fan-Out and Fan-In Pattern**: 
-   - **Fan-out**: Distribute tasks to multiple goroutines (workers) to process data concurrently.
+1. **Generator :**
+Generator functions are used to <span style="color:blue; ">generate</span> a sequence of values.</span>
+2. **Consumers :**
+Consumer <span style="color:blue; ">consumes</span> the value produced by Generator.</span>
+3. **Pipeline :**
+A series of stages where each stage processes data and passes it to the next stage. This pattern is useful when you have a <span style="color:blue; ">chain</span> of computations or transformations.
+4. **Fan-Out and Fan-In Pattern :**
+   - **Fan-out**: 
+   Distribute tasks to multiple goroutines (workers) to process data concurrently.
    - **Fan-in**: Merge results from multiple goroutines into a single result.
-5. **Worker Pool Pattern**: A common pattern where multiple worker goroutines process a queue of tasks. This pattern is helpful when dealing with resource-heavy or computationally expensive tasks.
-6. **Mutexes and Synchronization**: To prevent race conditions, Go provides synchronization primitives like `sync.Mutex` and `sync.WaitGroup` to ensure proper coordination between goroutines.
-7. **Wait Groups**: A synchronization primitive used to wait for a collection of goroutines to finish executing.
+5. **Worker Pool Pattern :**
+A common pattern where multiple worker goroutines process a queue of tasks. This pattern is helpful when dealing with <span style="color:red; ">resource-heavy or computationally expensive</span> tasks.
+6. **Mutexes and Synchronization :**
+To prevent race conditions, Go provides synchronization primitives like `sync.Mutex` and `sync.WaitGroup`.
+7. **Wait Groups**: Used to wait for a collection of goroutines to finish executing.
 
-## How to Use:
+---
 
-### 1. Clone the repository:
+## Profiling Go Applications
+Profiling is an automated approach to measure performance based on sampling a number of profile events during execution, then extrapolating during a post-processing step. The resulting statistical summary is called a <span style="color:red; ">profile</span>.
+
+### Different Types of Profiles
+1. **CPU Profile :**
+   <span style="color:teal; ">Identifies the functions that require the most CPU time.</span>
+   ```bash
+   go test -cpuprofile=cpu.out
+   ```
+2. **Heap Profile :**
+	<span style="color:teal; ">Identifies the statements responsible for allocating the most memory.</span>
+	```bash
+	go test -memprofile=memory.out
+	```
+3. **Block Profile :**
+	<span style="color:teal; ">Identifies the operations responsible for blocking goroutines the longest.</span>
+	```bash
+	go test -blockprofile=block.out
+	```
+
+## Executing pprof Samples
+To analyze the CPU profile, use the following command:
+```bash
+go tool pprof cpu.out
+```
+## Options
+1. <span style="color:blue; font-weight:bold;">web</span>: Generates a visual representation (requires Graphviz).
+2. <span style="color:green; font-weight:bold;">top</span>: Displays the most CPU-intensive functions.
+
+```go
+app.Use(pprof.New())
+```
+## Profiling Endpoints
+
+To collect profiling data, use the following `curl` commands to retrieve different types of profiles:
+
+1. <span style="color:blue; font-weight:bold;">CPU Profile:</span>
+   ```bash
+   curl <server-endpoint>/debug/pprof/profile -o cpu.pprof
+   ```
+2. <span style="color:green; font-weight:bold;">Heap Profile:</span>
+   ```bash
+   curl <server-endpoint>/debug/pprof/heap -o heap.pprof
+   ```
+3. <span style="color:red; font-weight:bold;">Block Profile:</span>
+   ```bash
+	curl <server-endpoint>/debug/pprof/block -o block.pprof
+   ```
+
+## Executing Using `go tool`
+
+Once you've obtained the `profiling` files, you can analyze them using `go tool pprof`:
 
 ```bash
-git clone https://github.com/vedashruta/learn-go.git
-cd learn-go
+go tool pprof cpu.pprof
 ```
-### 2. Uncomment the code in main() function
-Uncomment the code in the main() and run main.go to see the code in action
-```
-func main() {
-	// concurrency.Channels()
-	// strings.StringMethods()
+<span style="color:red;">Profiling introduces runtime overhead</span>, so avoid enabling it in production environments unless absolutely necessary.
 
-	// concurrency.Concurrency()
-	// variables.Variables()
-
-	// uncomment below line for Generator pattern
-	concurrency.Generator(1, 10)
-}
+To generate a visual representation of the profiling data, you need to install Graphviz:
+```bash
+go install github.com/goccy/go-graphviz/cmd/dot@latest
 ```
+Source: [Graphviz Documentation](https://pkg.go.dev/github.com/goccy/go-graphviz#section-readme)

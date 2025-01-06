@@ -42,4 +42,7 @@ func main() {
 	// ch3 := concurrency.Generator(21, 30)
 	// concurrency.FanOutFanIn(ch1, ch2, ch3)
 
+	// Profiling
+	// uncomment the below line to start a server on port 9600, on which you can profile
+	// profiling.Serve()
 }
