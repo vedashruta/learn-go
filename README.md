@@ -36,6 +36,8 @@ To prevent race conditions, Go provides synchronization primitives like `sync.Mu
 ## Profiling Go Applications
 Profiling is an automated approach to measure performance based on sampling a number of profile events during execution, then extrapolating during a post-processing step. The resulting statistical summary is called a <span style="color:red; ">profile</span>.
 
+Complete reference: [https://go.dev/blog/pprof](https://go.dev/blog/pprof)
+
 ### Different Types of Profiles
 1. **CPU Profile :**
    <span style="color:teal; ">Identifies the functions that require the most CPU time.</span>
@@ -61,6 +63,8 @@ go tool pprof cpu.out
 ## Options
 1. <span style="color:blue; font-weight:bold;">web</span>: Generates a visual representation (requires Graphviz).
 2. <span style="color:green; font-weight:bold;">top</span>: Displays the most CPU-intensive functions.
+3. <span style="color:olive; font-weight:bold;">topn</span>: Displays the top n CPU-intensive functions.(n=1,2...)
+4. <span style="color:grey; font-weight:bold;">list <function_name></span>: The listing shows the source code for the provided <function_name> (really, for every function matching the regular expression function_name)
 
 ```go
 app.Use(pprof.New())
@@ -73,13 +77,17 @@ To collect profiling data, use the following `curl` commands to retrieve differe
    ```bash
    curl <server-endpoint>/debug/pprof/profile -o cpu.pprof
    ```
+   <span style="color:orange;">alternatively,</span>
+   ```bash
+   go tool pprof <server-endpoint>/debug/pprof/profile
+   ```
 2. <span style="color:green; font-weight:bold;">Heap Profile:</span>
    ```bash
    curl <server-endpoint>/debug/pprof/heap -o heap.pprof
    ```
 3. <span style="color:red; font-weight:bold;">Block Profile:</span>
    ```bash
-	curl <server-endpoint>/debug/pprof/block -o block.pprof
+   curl <server-endpoint>/debug/pprof/block -o block.pprof
    ```
 
 ## Executing Using `go tool`

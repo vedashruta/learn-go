@@ -29,7 +29,17 @@ func main() {
 	// workers := make(chan struct{}, 4)
 	// concurrency.FanOut(numbers, workers)
 
-	// uncomment below line for workerpool pattern
+	// uncomment from 37-43 for fan-out pattern
+	// const workers = 4 //change this to set the number of workers
+	// jobQueue := concurrency.InitWorkers(4)
+	// for i := range 100 {
+	// 	jobQueue <- i
+	// }
+	// concurrency.ScheduleJobs(workers, jobQueue)
+	// uncomment 44 to see magic
+	// select {}
+
+	// uncomment below line for Queue based workerpool pattern
 	// concurrency.Workerpool(10)
 
 	// Fan-Out,Fan-In Pattern (combined)

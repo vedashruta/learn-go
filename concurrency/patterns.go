@@ -2,6 +2,7 @@ package concurrency
 
 import (
 	"fmt"
+	"math/rand"
 	"sync"
 	"time"
 )
@@ -104,8 +105,8 @@ func FanOut(numbers <-chan int, workers chan struct{}) { //recommended to make i
 	}
 }
 
-// Workerpool pattern
-func Workerpool(poolSize int) {
+// Queue based Workerpool1 pattern
+func Workerpool1(poolSize int) {
 	//change this to set the number of workers
 	ch := make(chan struct{}, poolSize)
 	for range poolSize {
@@ -120,6 +121,33 @@ func operation(ch chan struct{}) {
 	}()
 	fmt.Println("Time:", time.Now().UTC())
 	time.Sleep(2 * time.Second)
+}
+
+// Workerpools
+func InitWorkers(workers int) chan<- int {
+	jobQueue := make(chan int)
+	var wg sync.WaitGroup
+	for i := 0; i <= workers; i++ {
+		wg.Add(1)
+		go func(id int, jobQueue <-chan int, wg *sync.WaitGroup) {
+			defer wg.Done()
+			for j := range jobQueue {
+				fmt.Printf("worker %d executed task %d\n", i, j)
+			}
+		}(i, jobQueue, &wg)
+	}
+	return jobQueue
+}
+
+func ScheduleJobs(workers int, jobQueue chan<- int) {
+	go func() {
+		for {
+			job := rand.Intn(100) + 1 // Generate a random job ID (1-100)
+			jobQueue <- job           // Send the job to the job queue
+			// randomDelay := time.Duration(rand.Intn(1000)+500) * time.Millisecond // Random delay between 500ms and 1.5s
+			time.Sleep(2 * time.Second)
+		}
+	}()
 }
 
 func FanOutFanIn(channels ...<-chan int) {
