@@ -62,16 +62,17 @@ go tool pprof cpu.out
 ```
 ## Options
 1. <span style="color:blue; font-weight:bold;">web</span>: Generates a visual representation (requires Graphviz).
-2. <span style="color:green; font-weight:bold;">top</span>: Displays the most CPU-intensive functions.
-3. <span style="color:olive; font-weight:bold;">topn</span>: Displays the top n CPU-intensive functions.(n=1,2...)
-4. <span style="color:grey; font-weight:bold;">list <function_name></span>: The listing shows the source code for the provided <function_name> (really, for every function matching the regular expression function_name)
+2. <span style="color:olive; font-weight:bold;">text</span>: Displays the profiling data in text format.
+3. <span style="color:green; font-weight:bold;">top</span>: Displays the most CPU-intensive functions.
+4. <span style="color:olive; font-weight:bold;">topn</span>: Displays the top n CPU-intensive functions.(n=1,2...)
+5. <span style="color:grey; font-weight:bold;">list <function_name></span>: The listing shows the source code for the provided <function_name> (really, for every function matching the regular expression function_name)
 
 ```go
 app.Use(pprof.New())
 ```
 ## Profiling Endpoints
 
-To collect profiling data, use the following `curl` commands to retrieve different types of profiles:
+To collect profiling data, use the following `curl` command to retrieve different types of profiles:
 
 1. <span style="color:blue; font-weight:bold;">CPU Profile:</span>
    ```bash
@@ -103,4 +104,52 @@ To generate a visual representation of the profiling data, you need to install G
 ```bash
 go install github.com/goccy/go-graphviz/cmd/dot@latest
 ```
+
+### alterantive
+```bash
+go tool pprof -web cpu.pprof
+```
+```bash
+go tool pprof -text cpu.pprof
+```
+
+To see a list if available options use
+```bash
+go tool pprof --help
+```
+
+You can serve the profiling data via a server with
+```bash
+go tool pprof -http=:port profile.pb.gz
+```
+
 Source: [Graphviz Documentation](https://pkg.go.dev/github.com/goccy/go-graphviz#section-readme)
+
+## Tracing
+The `go tool trace` command is used in Go to analyze execution traces collected during a program's run
+
+To collect tracing data, use the following `curl` command to retrieve traces
+
+<span style="color:blue; font-weight:bold;">Trace</span>
+```bash
+curl <server-endpoint>/debug/pprof/trace -o trace.out
+```
+Unlike pprof we donot have different types of traces
+
+### Inspect the Report
+
+The `go tool trace` command starts a local web server and opens a web-based interface with several views. Here are the key sections you can analyze:
+
+```bash
+go tool trace trace.out
+```
+- **Goroutines**: Analyze running goroutines and their states.
+- **Heap**: View heap memory usage.
+- **Scheduler**: Check the Go scheduler's behavior.
+- **Network/IO**: Inspect network and I/O events.
+- **User-defined Regions**: Examine custom trace annotations for deeper insights.
+
+## Integrate with Tests: Use go test to directly collect traces
+```bash
+go test -trace=trace.out
+```
