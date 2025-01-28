@@ -105,7 +105,7 @@ To generate a visual representation of the profiling data, you need to install G
 go install github.com/goccy/go-graphviz/cmd/dot@latest
 ```
 
-### alterantive
+### alternative
 ```bash
 go tool pprof -web cpu.pprof
 ```
