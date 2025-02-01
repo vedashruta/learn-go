@@ -1,7 +1,5 @@
 package main
 
-import "learn-go/input"
-
 func main() {
 	// concurrency.Channels()
 	// strings.StringMethods()
@@ -58,5 +56,7 @@ func main() {
 	// uncomment the below line to start a server on port 9600, on which you can profile
 	// profiling.Serve()
 
-	input.Read()
+	// input.Read()
+	// concurrency.Race()
+
 }

@@ -11,8 +11,6 @@ var (
 	deposits = make(chan int)
 	balances = make(chan int)
 	once     = &sync.Once{}
-	counter  int
-	wg       sync.WaitGroup
 )
 
 func init() {
@@ -67,14 +65,6 @@ func Concurrency() {
 	dep(500)
 	dep(400)
 	dep(1)
-
-	//Race condition with -race flag enabled
-	wg.Add(2)
-	go Increment()
-	go Increment()
-	wg.Wait()
-	fmt.Println("Counter:", counter)
-
 }
 
 // We can use buffered channel as a semaphore
@@ -146,11 +136,4 @@ func generate() <-chan int {
 func initOnlyOnce() {
 	fmt.Println(time.Now())
 	fmt.Println("Function is initialized")
-}
-
-func Increment() {
-	for i := 0; i < 1000; i++ {
-		counter++ // Race condition: multiple goroutines modifying counter
-	}
-	wg.Done()
 }

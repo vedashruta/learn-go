@@ -11,9 +11,9 @@ The code examples provided are straightforward and self-explanatory. Chill out <
 4. **Functions**
 5. **Concurrency**
 6. **Profiling**
+7. **Tracing**
 
 ---
-
 ## Concurrency Patterns:
 1. **Generator :**
 Generator functions are used to <span style="color:blue; ">generate</span> a sequence of values.</span>
@@ -32,7 +32,65 @@ To prevent race conditions, Go provides synchronization primitives like `sync.Mu
 7. **Wait Groups**: Used to wait for a collection of goroutines to finish executing.
 
 ---
+## Detecting Data Race
+A datarace occurs whenever two go routines access the same shared resource concuurently and at least one 
+of the access is a write
 
+```bash
+go run -race main.go
+```
+
+Methods to prevent datarace
+1. Initialize variables and never modify it again
+2. Avoid accessing resources from multiple go routines, share variables using channels
+3. Using Mutex locks
+
+Simple Race Porgram 
+```bash
+package main
+
+var (
+	counter int
+	wg      sync.WaitGroup
+)
+
+func main() {
+	wg.Add(2)
+	go Increment()
+	go Increment()
+	wg.Wait()
+	fmt.Println("Counter:", counter)
+}
+
+func Increment() {
+	for i := 0; i < 1000; i++ {
+		counter++ // Race condition: multiple goroutines modifying counter
+	}
+	wg.Done()
+}
+```
+
+```bash
+go run -race main.go
+```
+
+Race Detector records all access to the shared resources ocuurred during the execution along with the identity of the go routines that read or wrote the variable.
+
+---
+## Go Routine leak:
+
+Go Routine leak is a situation when more than one go routine is running and synchronizing over an unbuffered channel, and one go routine is writing into a channel frm which no go routine would ever receive.
+
+Leaked go routines are not automatically collected by GC
+
+---
+## Memory Synchronization
+Many processors have its own local cache of main memory
+For efficiency, writes to the memory are buffered within each processor and flushed out to main memory only when necessary
+If multiple go routines operate, the modified value may not be visible to other go routines.
+Synchronization primitives like channels and mutex operations cause the processor to flush and commit all writes so that the writes upto that point are visible to go routines running on other processors.
+
+---
 ## Profiling Go Applications
 Profiling is an automated approach to measure performance based on sampling a number of profile events during execution, then extrapolating during a post-processing step. The resulting statistical summary is called a <span style="color:red; ">profile</span>.
 
@@ -55,6 +113,7 @@ Complete reference: [https://go.dev/blog/pprof](https://go.dev/blog/pprof)
 	go test -blockprofile=block.out
 	```
 
+---
 ## Executing pprof Samples
 To analyze the CPU profile, use the following command:
 ```bash
@@ -70,6 +129,7 @@ go tool pprof cpu.out
 ```go
 app.Use(pprof.New())
 ```
+---
 ## Profiling Endpoints
 
 To collect profiling data, use the following `curl` command to retrieve different types of profiles:
@@ -90,7 +150,7 @@ To collect profiling data, use the following `curl` command to retrieve differen
    ```bash
    curl <server-endpoint>/debug/pprof/block -o block.pprof
    ```
-
+---
 ## Executing Using `go tool`
 
 Once you've obtained the `profiling` files, you can analyze them using `go tool pprof`:
@@ -118,13 +178,14 @@ To see a list if available options use
 go tool pprof --help
 ```
 
-You can serve the profiling data via a server with
+You can serve the profiling data via http server with
 ```bash
 go tool pprof -http=:port profile.pb.gz
 ```
 
 Source: [Graphviz Documentation](https://pkg.go.dev/github.com/goccy/go-graphviz#section-readme)
 
+---
 ## Tracing
 The `go tool trace` command is used in Go to analyze execution traces collected during a program's run
 
@@ -149,6 +210,7 @@ go tool trace trace.out
 - **Network/IO**: Inspect network and I/O events.
 - **User-defined Regions**: Examine custom trace annotations for deeper insights.
 
+---
 ## Integrate with Tests: Use go test to directly collect traces
 ```bash
 go test -trace=trace.out
