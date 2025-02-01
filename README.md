@@ -91,6 +91,234 @@ If multiple go routines operate, the modified value may not be visible to other 
 Synchronization primitives like channels and mutex operations cause the processor to flush and commit all writes so that the writes upto that point are visible to go routines running on other processors.
 
 ---
+## Channel Behaviour
+
+### Blocking Behavior
+
+**Blocking On Send**
+
+1.	Sending to an unbuffered channel blocks until another goroutine is ready to receive.
+      ```bash  
+      ch := make(chan int) // Unbuffered channel
+      go func() {
+         ch <- 42 // Blocks until the value is received
+         fmt.Println("Sent")
+      }()
+      fmt.Println(<-ch)
+      ```
+
+2. Sending to a buffered channel blocks only if the buffer is full.
+   ```bash  
+   ch := make(chan int, 1) // Buffered channel
+   go func() {
+   ch <- 42 // will not be blocked
+      ch <- 43 // Blocks until the value is received
+      fmt.Println("Sent")
+   }()
+   fmt.Println(<-ch)
+   ```
+
+**Blocking On Receive**
+
+1. Receiving from an unbuffered channel blocks until another goroutine sends a value.
+   Receiving from a buffered channel blocks only if the buffer is empty.
+   ```bash
+   ch := make(chan int, 1) // Buffered channel
+   go func() {
+      fmt.Println("Sent")
+      ch <- 42
+   }()
+   fmt.Println("Receiving")
+   fmt.Println(<-ch) // Blocks until a value is sent
+   ```
+
+### Non-Blocking Behavior
+
+Use a select statement with a default case to make non-blocking operations.
+   ```bash
+   ch := make(chan int)
+   select {
+      case v := <-ch:
+         fmt.Println("Received:", v) // Won't execute (no value to receive)
+      default:
+         fmt.Println("No data") // Executes immediately will not be blocked
+   }
+   ```
+
+### Reading from a closed channel
+
+**`case 1:` channel buffer is not empty**
+
+If the channel is closed but still has buffered values, those values are read first before getting the zero value.
+   ```bash
+   ch := make(chan int, 2)
+   ch <- 10
+   ch <- 20
+   close(ch)
+   fmt.Println(<-ch) // Prints: 10
+   fmt.Println(<-ch) // Prints: 20
+   fmt.Println(<-ch) // Prints: 0 (channel is closed and empty),this will not be blocked
+   ```
+
+**`case 2:` channel buffer is empty (no data in channel)**
+
+Reading from a closed channel returns the zero value of the channel's type and false for `ok`
+   ```bash
+   ch := make(chan string)
+   close(ch)
+   v, ok := <-ch
+      	fmt.Println(v, ok) // Prints: “” false
+   ```
+   
+**Iterating Over a Channel**
+
+   for range on a Channel
+   
+   `Case 1:` Channel is closed and buffer is not-empty.
+   Iterates over all values sent to the channel.
+   ```bash
+   // Buffered channel is used,if not it will be blocked on second send and will not reach the loop
+   ch := make(chan int, 2)
+   ch <- 10
+   ch <- 20
+   close(ch)
+   for v := range ch {
+      fmt.Println(v)
+   }
+
+   // Same Example with UnBuffered channel
+   ch := make(chan int, 2)
+   go func() {
+       ch <- 10
+       ch <- 20
+       close(ch)
+   }()
+   for v := range ch {
+       fmt.Println(v)
+   }
+   ```
+
+`Case 2:` channel is closed and buffer is empty.
+
+No Output ,as cannot iterate over a channel which is empty and which is closed 
+   ```bash
+   ch1 := make(chan int, 2)
+   close(ch1)
+   for v := range ch1 {
+    	fmt.Println(v) //No output
+   }	
+   fmt.Println("Execution will reach here") //Execution will reach this line
+   ```
+
+`Case 3:`  Channel is not closed(open) and the buffer is not empty
+**UnBuffered Channel**
+
+   ```bash
+   // Use a goroutine with an unbuffered channel,since the receiver is not yet ready, send would block forever.
+   ch1 := make(chan int)
+   go func() {
+    	ch1 <- 10
+	}()
+   for v := range ch1 {
+    	fmt.Println(v) //Prints 10 & then Deadlock
+   }
+   ```
+
+**Buffered Channel**
+
+   ```bash
+   ch1 := make(chan int,1)
+   ch1 <- 10
+   for v := range ch1 {
+   fmt.Println(v) //Prints 10 & then Deadlock
+   }
+   fmt.Println("Execution will not reach here") //Execution will not reach this line
+   ```
+
+`Reason for Deadlock in both cases: The channel is not closed, and the for range loop waits indefinitely for more values.`
+
+`Case 4:`  Channel is not closed and the buffer is empty
+
+In case of both buffered and unbuffered channel this would lead to deadlock
+   ```bash
+   ch1 := make(chan int)
+   for v := range ch1 {
+      fmt.Println(v) //No output
+   }
+   fmt.Println("Execution will not reach here") //Execution will not reach this line
+   ```
+
+### Closing an Already Closed Channel
+
+Attempting to close an already closed channel causes a panic.
+   ```bash
+   ch1 := make(chan int)
+   go func() {
+      ch1 <- 10
+      close(ch1)
+	}()
+   <-ch1
+   close(ch1)
+   ```
+
+### Summary of Channel Behaviour
+
+<table>
+  <thead>
+    <tr>
+      <th>Scenario</th>
+      <th>Blocking</th>
+      <th>Non-Blocking</th>
+      <th>Remarks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Send to unbuffered channel</td>
+      <td>YES</td>
+      <td>No (if receiver)</td>
+      <td>Blocks until received</td>
+    </tr>
+    <tr>
+      <td>Receive from unbuffered channel</td>
+      <td>YES</td>
+      <td>No (if sender)</td>
+      <td>Blocks until value is sent</td>
+    </tr>
+    <tr>
+      <td>Send to buffered channel</td>
+      <td>YES (If buffer is full)</td>
+      <td>No (if buffer is not full)</td>
+      <td>Blocks if buffer is full</td>
+    </tr>
+    <tr>
+      <td>Receive from buffered channel</td>
+      <td>Yes (if buffer is empty)</td>
+      <td>No (if buffer has some data)</td>
+      <td>Blocks if buffer is empty</td>
+    </tr>
+    <tr>
+      <td>Read from closed channel</td>
+      <td>NO</td>
+      <td>YES</td>
+      <td>Returns zero value</td>
+    </tr>
+    <tr>
+      <td>for range on open channel</td>
+      <td>YES</td>
+      <td>NO</td>
+      <td>Blocks if no senders or not closed</td>
+    </tr>
+    <tr>
+      <td>for range on closed channel</td>
+      <td>NO</td>
+      <td>YES</td>
+      <td>Terminates automatically</td>
+    </tr>
+  </tbody>
+</table>
+
+---
 ## Profiling Go Applications
 Profiling is an automated approach to measure performance based on sampling a number of profile events during execution, then extrapolating during a post-processing step. The resulting statistical summary is called a <span style="color:red; ">profile</span>.
 
@@ -215,3 +443,4 @@ go tool trace trace.out
 ```bash
 go test -trace=trace.out
 ```
+
