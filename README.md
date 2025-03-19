@@ -111,12 +111,13 @@ Synchronization primitives like channels and mutex operations cause the processo
    ```bash  
    ch := make(chan int, 1) // Buffered channel
    go func() {
-   ch <- 42 // will not be blocked
+      ch <- 42 // will not be blocked
       ch <- 43 // Blocks until the value is received
       fmt.Println("Sent")
    }()
    fmt.Println(<-ch)
    ```
+   Once the buffer is full, buffered channel will behave like an unbuffered channel
 
 **Blocking On Receive**
 
@@ -131,6 +132,7 @@ Synchronization primitives like channels and mutex operations cause the processo
    fmt.Println("Receiving")
    fmt.Println(<-ch) // Blocks until a value is sent
    ```
+   Once the buffer is empty, buffered channel will behave like an unbuffered channel
 
 ### Non-Blocking Behavior
 
@@ -158,6 +160,9 @@ If the channel is closed but still has buffered values, those values are read fi
    fmt.Println(<-ch) // Prints: 10
    fmt.Println(<-ch) // Prints: 20
    fmt.Println(<-ch) // Prints: 0 (channel is closed and empty),this will not be blocked
+   v, ok := <-ch
+   fmt.Println(v, ok) // Prints: 0 false
+
    ```
 
 **`case 2:` channel buffer is empty (no data in channel)**
@@ -167,7 +172,7 @@ Reading from a closed channel returns the zero value of the channel's type and f
    ch := make(chan string)
    close(ch)
    v, ok := <-ch
-      	fmt.Println(v, ok) // Prints: “” false
+   fmt.Println(v, ok) // Prints: “” false
    ```
    
 **Iterating Over a Channel**
@@ -202,9 +207,9 @@ Reading from a closed channel returns the zero value of the channel's type and f
 
 No Output ,as cannot iterate over a channel which is empty and which is closed 
    ```bash
-   ch1 := make(chan int, 2)
-   close(ch1)
-   for v := range ch1 {
+   ch := make(chan int, 2)
+   close(ch)
+   for v := range ch {
     	fmt.Println(v) //No output
    }	
    fmt.Println("Execution will reach here") //Execution will reach this line
@@ -215,11 +220,11 @@ No Output ,as cannot iterate over a channel which is empty and which is closed
 
    ```bash
    // Use a goroutine with an unbuffered channel,since the receiver is not yet ready, send would block forever.
-   ch1 := make(chan int)
+   ch := make(chan int)
    go func() {
-    	ch1 <- 10
+    	ch <- 10
 	}()
-   for v := range ch1 {
+   for v := range ch {
     	fmt.Println(v) //Prints 10 & then Deadlock
    }
    ```
@@ -227,9 +232,9 @@ No Output ,as cannot iterate over a channel which is empty and which is closed
 **Buffered Channel**
 
    ```bash
-   ch1 := make(chan int,1)
-   ch1 <- 10
-   for v := range ch1 {
+   ch := make(chan int,1)
+   ch <- 10
+   for v := range ch {
    fmt.Println(v) //Prints 10 & then Deadlock
    }
    fmt.Println("Execution will not reach here") //Execution will not reach this line
@@ -248,17 +253,24 @@ In case of both buffered and unbuffered channel this would lead to deadlock
    fmt.Println("Execution will not reach here") //Execution will not reach this line
    ```
 
-### Closing an Already Closed Channel
+### Closed Channel
 
-Attempting to close an already closed channel causes a panic.
+Attempting to close an already closed channel causes panic.
    ```bash
-   ch1 := make(chan int)
+   ch := make(chan int)
    go func() {
-      ch1 <- 10
-      close(ch1)
+      ch <- 10
+      close(ch)
 	}()
-   <-ch1
+   <-ch
+   close(ch)
+   ```
+
+Attempting to send data to a closed channel causes panic.
+   ```bash
+   ch := make(chan int, 2)
    close(ch1)
+	ch <- 10
    ```
 
 ### Summary of Channel Behaviour
