@@ -68,15 +68,15 @@ func main() {
 - The compiler infers the size as `5`, making `arr4` an array of type `[5]int`.
 
 ### Memory Allocation
----
+
 - The array is stored **contiguously** in memory.
 - Since only **index 4** is explicitly set to `10`, the remaining elements default to `0` (Go initializes arrays with zero values).
 
 ### Array Type
----
+
 - The type of `arr4` is **`[5]int`**, which is different from a slice (`[]int`).
 - You **cannot use `append`** on `arr4` because it is a **fixed-size** array.
----
+
 The size of the array is a part of the type. Hence `[5]int` and `[25]int` are distinct types. Because of this, arrays cannot be resized.
 ```bash
 package main
@@ -90,6 +90,7 @@ func main() {
 <span style="color:red">error : cannot use a (type [5]int) as type [10]int in assignment</span>
 
 ### Length and Capacity of an Array
+
 The `len` function returns the number of elements in the array.
 
 Since arrays in Go have a fixed size, `len(arr)` will always return the declared size of the array
