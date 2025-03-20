@@ -1,27 +1,3 @@
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-        background-color: #f4f4f4;
-    }
-    .container {
-        margin: auto;
-        background: white;
-        padding: 20px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    h2 {
-        color: #333;
-        border-bottom: 2px solid #0073e6;
-        padding-bottom: 5px;
-    }
-    ul {
-        list-style-type: circle;
-        margin-left: 20px;
-    }
-</style>
-<div class="container">
-
 # learn-go
 
 This repository contains Go example scripts that covers a wide range of Go concepts from basic to advanced. The goal is to provide a comprehensive guide for developers looking to understand the concepts in an easy way.
@@ -622,5 +598,3 @@ go tool trace trace.out
 ```bash
 go test -trace=trace.out
 ```
-
-</div>
