@@ -19,8 +19,11 @@ The code examples provided are straightforward and self-explanatory. Chill out <
 ## Arrays & Slices
 
 Both arrays and slices store sequences of elements, but they differ in flexibility, memory management, and usage.
-<h2>Array</h2>
-<p>An array is a fixed-size sequence of elements of the same type. The size is defined at declaration and cannot be changed.</p>
+
+### Array
+
+An array is a fixed-size sequence of elements of the same type. The size is defined at declaration and cannot be changed.
+
 <p>This means once you declare an array of size <strong>n</strong>, you cannot extend or shrink it.</p>
 <h3>Properties</h3>
 <ul>
@@ -62,9 +65,9 @@ func main() {
 ```
 
 ### Use of `[...]`
----
-- The `[...]` notation tells the compiler to determine the array size based on the highest index provided.  
-- In this case, `4: 10` means the array should have at least 5 elements (index `4` is the last valid index).  
+
+- The `[...]` notation tells the compiler to determine the array size based on the highest index provided.
+- In this case, `4: 10` means the array should have at least 5 elements (index `4` is the last valid index).
 - The compiler infers the size as `5`, making `arr4` an array of type `[5]int`.
 
 ### Memory Allocation
@@ -78,6 +81,7 @@ func main() {
 - You **cannot use `append`** on `arr4` because it is a **fixed-size** array.
 
 The size of the array is a part of the type. Hence `[5]int` and `[25]int` are distinct types. Because of this, arrays cannot be resized.
+
 ```bash
 package main
 
@@ -87,6 +91,7 @@ func main() {
 	arr2 = arr1 // Not Possible
 }
 ```
+
 <span style="color:red">error : cannot use a (type [5]int) as type [10]int in assignment</span>
 
 ### Length and Capacity of an Array
@@ -112,8 +117,7 @@ func main() {
 }
 ```
 
-<h2>Slice</h2>
-
+### Slice
 
 ## Concurrency Patterns:
 
