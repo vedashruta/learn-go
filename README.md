@@ -69,6 +69,7 @@ func main() {
 - The `[...]` notation tells the compiler to determine the array size based on the highest index provided.
 - In this case, `4: 10` means the array should have at least 5 elements (index `4` is the last valid index).
 - The compiler infers the size as `5`, making `arr4` an array of type `[5]int`.
+- Elipsis determine the length of the array based on the number of initializers
 
 ### Memory Allocation
 
@@ -120,6 +121,10 @@ func main() {
 ## Slice
 
 A slice is a dynamically sized, flexible view into an underlying array. Unlike arrays, slices do not have a fixed size and can grow or shrink as needed.
+
+### Are slices contiguously stored?
+Yes, only when they are first created from an array.
+No, if append triggers a reallocation.
 
 ### Slice Declaration
 A slice is declared using []T, where T is the type of elements.
