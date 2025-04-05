@@ -20,7 +20,7 @@ The code examples provided are straightforward and self-explanatory. Chill out <
 
 Both arrays and slices store sequences of elements, but they differ in flexibility, memory management, and usage.
 
-## Array
+## Arrays
 
 An array is a fixed-size sequence of elements of the same type. The size is defined at declaration and cannot be changed.
 
@@ -118,7 +118,7 @@ func main() {
 }
 ```
 
-## Slice
+## Slices
 
 A slice is a dynamically sized, flexible view into an underlying array. Unlike arrays, slices do not have a fixed size and can grow or shrink as needed.
 
@@ -228,6 +228,45 @@ func main() {
 	fmt.Println(y) // [1,2,3]
 }
 ```
+---
+## Interfaces
+
+Interfaces provide a way to define behavior. An interface is a type that specifies a set of method signatures, and any type that implements those methods implicitly satisfies the interface. Interfaces are a key part of Go’s approach to polymorphism and abstraction
+
+```bash
+
+package main
+import "fmt"
+
+// Define an interface
+type Speaker interface {
+   Speak() string
+}
+
+// Define a type that implements the interface
+type Dog struct{}
+
+func (d Dog) Speak() string {
+   return "Woof!"
+}
+
+type Cat struct{}
+
+func (c Cat) Speak() string {
+   return "Meow!"
+}
+
+func main() {
+   var s Speaker
+
+   s = Dog{}
+   fmt.Println(s.Speak()) // Output: Woof!
+
+   s = Cat{}
+   fmt.Println(s.Speak()) // Output: Meow!
+}
+```
+
 
 ---
 ## Concurrency Patterns:
