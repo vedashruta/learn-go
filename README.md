@@ -33,7 +33,7 @@ An array is a fixed-size sequence of elements of the same type. The size is defi
 <h3>Declaration</h3>
 <p>An array belongs to type <code>[n]T</code>. <code>n</code> denotes the number of elements in an array and <code>T</code> represents the type of each element.</p>
 
-```bash
+```go
 package main
 
 import "fmt"
@@ -83,7 +83,7 @@ func main() {
 
 The size of the array is a part of the type. Hence `[5]int` and `[25]int` are distinct types. Because of this, arrays cannot be resized.
 
-```bash
+```go
 package main
 
 func main() {
@@ -105,7 +105,7 @@ The `cap` function returns the number of elements array can hold.
 
 Unlike slices, where `cap` can be different from len, for arrays, `len(arr) == cap(arr)` always holds `true`.
 
-```bash
+```go
 package main
 
 import "fmt"
@@ -130,7 +130,7 @@ No, if append triggers a reallocation.
 A slice is declared using []T, where T is the type of elements.
 Unlike arrays, a slice does not specify a fixed length.
 
-```bash
+```go
 package main
 
 import (
@@ -160,7 +160,7 @@ func main() {
 
 Slices are created by taking a portion of an array.
 
-```bash
+```go
 package main
 
 import (
@@ -182,7 +182,7 @@ func main() {
 
 Slices are dynamic and new elements can be appended to the slice using `append` function
 
-```bash
+```go
 package main
 
 import (
@@ -207,7 +207,7 @@ func main() {
 
 A slice in Go is mutable because it shares the same underlying array. Modifying elements in a slice affects the original array.
 
-```bash
+```go
 package main
 
 import (
@@ -233,7 +233,7 @@ func main() {
 
 Interfaces provide a way to define behavior. An interface is a type that specifies a set of method signatures, and any type that implements those methods implicitly satisfies the interface. Interfaces are a key part of Go’s approach to polymorphism and abstraction
 
-```bash
+```go
 
 package main
 import "fmt"
@@ -287,14 +287,74 @@ func main() {
    To prevent race conditions, Go provides synchronization primitives like `sync.Mutex` and `sync.WaitGroup`.
 7. **Wait Groups**: Used to wait for a collection of goroutines to finish executing.
 
+## Achieving Parallelism in Go
+
+## Concurrency vs Parallelism
+
+Although often used interchangeably, **concurrency** and **parallelism** are distinct concepts in computer science
+
 ---
+
+### Concurrency
+
+- **Definition**: Concurrency is about **dealing with many tasks at once**, by allowing tasks to make progress without necessarily finishing simultaneously.
+- **How it works**: Multiple tasks are executed by **time-sharing** on a single CPU core.
+- **Use case**: Useful when tasks are **I/O-bound** or when you need to manage many tasks efficiently.
+
+> Think of concurrency as a single chef preparing multiple dishes by switching between them based on readiness of ingredients.
+
+---
+
+### Parallelism
+
+- **Definition**: Parallelism is about **doing many tasks at exactly the same time**.
+- **How it works**: Multiple tasks are executed **simultaneously on multiple CPU cores**.
+- **Use case**: Ideal when tasks are **CPU-bound** and you want to reduce total execution time.
+
+> Think of parallelism as having multiple chefs, each cooking their own dish at the same time.
+
+---
+
+### Summary Table
+
+| Aspect       | Concurrency                          | Parallelism                          |
+|--------------|--------------------------------------|--------------------------------------|
+| Definition   | Structuring tasks to run independently | Executing tasks simultaneously       |
+| CPU Usage    | Can happen on a single core           | Requires multiple cores              |
+| Main Benefit | Responsiveness, managing complexity   | Speed and performance                |
+| In Go        | Achieved using goroutines             | Achieved using goroutines + multiple cores via `runtime.GOMAXPROCS()` |
+
+
+You can achieve **parallelism** in Go by leveraging **goroutines**, the **Go scheduler**, and proper configuration of **CPU core usage**.
+
+---
+
+### Goroutines
+
+- Goroutines are **lightweight threads** managed by the Go runtime.
+- They are more efficient than traditional threads and are ideal for concurrent and parallel programming.
+
+---
+
+### CPU Core Utilization
+
+- By default, Go can utilize **multiple CPU cores**.
+- Use the following to set the number of CPU cores the program can use:
+
+```go
+import "runtime"
+
+runtime.GOMAXPROCS(runtime.NumCPU())
+```
+---
+This lets the Go scheduler distribute goroutines across multiple OS threads and cores, enabling true parallelism.CPU, then multiple goroutines would be run on same cpu core, making the execution concurrent, if there is more than one cpu core available we can run goroutines on each available core achieving parallelism
 
 ## Detecting Data Race
 
 A datarace occurs whenever two go routines access the same shared resource concuurently and at least one
 of the access is a write
 
-```bash
+```go
 go run -race main.go
 ```
 
@@ -306,7 +366,7 @@ Methods to prevent datarace
 
 Simple Race Porgram
 
-```bash
+```go
 package main
 
 var (
@@ -330,7 +390,7 @@ func Increment() {
 }
 ```
 
-```bash
+```go
 go run -race main.go
 ```
 
@@ -338,7 +398,7 @@ Race Detector records all access to the shared resources ocuurred during the exe
 
 ---
 
-## Go Routine leak:
+## Go Routine leak
 
 Go Routine leak is a situation when more than one go routine is running and synchronizing over an unbuffered channel, and one go routine is writing into a channel frm which no go routine would ever receive.
 
@@ -353,6 +413,169 @@ For efficiency, writes to the memory are buffered within each processor and flus
 If multiple go routines operate, the modified value may not be visible to other go routines.
 Synchronization primitives like channels and mutex operations cause the processor to flush and commit all writes so that the writes upto that point are visible to go routines running on other processors.
 
+Mutex and Semaphores are kernel resources that provide synchronization services (also known as synchronization primitives).
+
+### Mutex Lock
+Mutex is mainly used to provide mutual exclusion to a specific portion of the code (critical section) and is used in concurrent programming to manage access to shared resources, ensuring that only one thread can access the shared resource at a time.
+
+### Mutex Locks in Golang
+Package `sync` provides basic synchronization primitives such as mutual exclusion locks.
+A mutex (mutual exclusion lock) in Golang is used to prevent race conditions by ensuring that only one goroutine accesses a shared resource at a time.
+
+### Types of Mutexes 
+Golang provides `sync.Mutex` and `sync.RWMutex` for managing concurrent access
+1. `sync.Mutex` (Exclusive Lock)</br>
+Only one go routine can read/write at a time by acquiring the lock. When one goroutine acquires a sync.Mutex lock, no other goroutine can read or write until the lock is released.
+```go
+package main
+import (
+   "fmt"
+   "sync"
+)
+var (
+   counter int
+   mutex   sync.Mutex
+)
+func increment(wg *sync.WaitGroup) {
+   defer wg.Done()
+   mutex.Lock()   // Acquire lock
+   counter++      // Critical section
+   mutex.Unlock() // Release lock
+}
+
+func main() {
+   var wg sync.WaitGroup
+   for i := 0; i < 10; i++ {
+       wg.Add(1)
+       go increment(&wg)
+   }
+   wg.Wait()
+   fmt.Println("Final Counter:", counter)
+}
+```
+
+2. `sync.RWMutex` (Read-Write Mutex)</br>
+Multiple goroutines can read (read only, no write is allowed in this method, to write use exclusive lock) at a time by acquiring the lock.
+Multiple goroutines can acquire `RLock()` simultaneously.
+```go
+package main
+import (
+   "fmt"
+   "sync"
+)
+
+var (
+   data  int
+   mutex sync.RWMutex
+)
+
+func readData(id int, wg *sync.WaitGroup) {
+   defer wg.Done()
+   mutex.RLock() // Multiple readers allowed
+   defer mutex.RUnlock()
+   fmt.Println("Goroutine", id, "reading data:", data)
+}
+
+func writeData(wg *sync.WaitGroup) {
+   defer wg.Done()
+   mutex.Lock() // Exclusive write lock
+   defer mutex.Unlock()
+   data++
+   fmt.Println("Writing data:", data)
+}
+
+func main() {
+   var wg sync.WaitGroup
+   for i := 0; i < 5; i++ {
+       wg.Add(1)
+       go readData(i, &wg)
+   }
+   wg.Add(1)
+   go writeData(&wg)
+   wg.Wait()
+}
+```
+
+## Scenarios
+
+### Case 1: One Goroutine Holds `Lock()`
+
+#### Case 1.1: Another Goroutine Wants to Read or Write
+- The second goroutine must wait until the first goroutine releases the acquired lock.
+
+---
+
+### Case 2: One Goroutine Holds `RLock()`
+
+#### Case 2.1: Another Goroutine Wants to Read
+- Multiple goroutines can acquire `RLock()` simultaneously.
+
+#### Case 2.2: Another Goroutine Wants to Write
+- A writer (`Lock()`) must wait until all readers release `RLock()`.
+
+---
+
+## Race Condition
+
+A **data race** occurs whenever two goroutines access the same shared resource concurrently and **at least one of the accesses is a write**.
+
+---
+
+## Detecting Data Races
+
+Use the Go race detector:
+
+```go
+go run -race main.go
+```
+
+## Methods to Prevent Data Races
+
+1. **Initialize Variables and Never Modify Again**
+2. **Avoid Accessing Shared Resources from Multiple Goroutines**, share data using **channels** instead.
+3. **Use Mutex Locks**
+   - Use `sync.Mutex` or `sync.RWMutex` to lock access to shared resources.
+
+---
+
+## How the Race Detector Works
+
+- Records **all accesses** to shared resources during execution.
+- Tracks the **identity of goroutines** that read or wrote to the variables.
+
+---
+
+## Example: Race Condition
+
+```go
+package main
+
+import (
+    "fmt"
+    "sync"
+)
+
+var (
+    counter int
+    wg      sync.WaitGroup
+)
+
+func main() {
+    wg.Add(2)
+    go Increment()
+    go Increment()
+    wg.Wait()
+    fmt.Println("Counter:", counter)
+}
+
+func Increment() {
+    for i := 0; i < 1000; i++ {
+        counter++ // Race condition: multiple goroutines modifying counter
+    }
+    wg.Done()
+}
+```
+
 ---
 
 ## Channel Behaviour
@@ -363,7 +586,7 @@ Synchronization primitives like channels and mutex operations cause the processo
 
 1. Sending to an unbuffered channel blocks until another goroutine is ready to receive.
 
-   ```bash
+   ```go
    ch := make(chan int) // Unbuffered channel
    go func() {
       ch <- 42 // Blocks until the value is received
@@ -373,7 +596,7 @@ Synchronization primitives like channels and mutex operations cause the processo
    ```
 
 2. Sending to a buffered channel blocks only if the buffer is full.
-   ```bash
+   ```go
    ch := make(chan int, 1) // Buffered channel
    go func() {
       ch <- 42 // will not be blocked
@@ -388,7 +611,7 @@ Synchronization primitives like channels and mutex operations cause the processo
 
 1. Receiving from an unbuffered channel blocks until another goroutine sends a value.
    Receiving from a buffered channel blocks only if the buffer is empty.
-   ```bash
+   ```go
    ch := make(chan int, 1) // Buffered channel
    go func() {
       fmt.Println("Sent")
@@ -403,7 +626,7 @@ Synchronization primitives like channels and mutex operations cause the processo
 
 Use a select statement with a default case to make non-blocking operations.
 
-```bash
+```go
 ch := make(chan int)
 select {
    case v := <-ch:
@@ -419,7 +642,7 @@ select {
 
 If the channel is closed but still has buffered values, those values are read first before getting the zero value.
 
-```bash
+```go
 ch := make(chan int, 2)
 ch <- 10
 ch <- 20
@@ -436,7 +659,7 @@ fmt.Println(v, ok) // Prints: 0 false
 
 Reading from a closed channel returns the zero value of the channel's type and false for `ok`
 
-```bash
+```go
 ch := make(chan string)
 close(ch)
 v, ok := <-ch
@@ -450,7 +673,7 @@ for range on a Channel
 `Case 1:` Channel is closed and buffer is not-empty.
 Iterates over all values sent to the channel.
 
-```bash
+```go
 // Buffered channel is used,if not it will be blocked on second send and will not reach the loop
 ch := make(chan int, 2)
 ch <- 10
@@ -476,7 +699,7 @@ for v := range ch {
 
 No Output ,as cannot iterate over a channel which is empty and which is closed
 
-```bash
+```go
 ch := make(chan int, 2)
 close(ch)
 for v := range ch {
@@ -488,7 +711,7 @@ fmt.Println("Execution will reach here") //Execution will reach this line
 `Case 3:` Channel is not closed(open) and the buffer is not empty
 **UnBuffered Channel**
 
-```bash
+```go
 // Use a goroutine with an unbuffered channel,since the receiver is not yet ready, send would block forever.
 ch := make(chan int)
 go func() {
@@ -501,7 +724,7 @@ for v := range ch {
 
 **Buffered Channel**
 
-```bash
+```go
 ch := make(chan int,1)
 ch <- 10
 for v := range ch {
@@ -516,7 +739,7 @@ fmt.Println("Execution will not reach here") //Execution will not reach this lin
 
 In case of both buffered and unbuffered channel this would lead to deadlock
 
-```bash
+```go
 ch1 := make(chan int)
 for v := range ch1 {
    fmt.Println(v) //No output
@@ -528,7 +751,7 @@ fmt.Println("Execution will not reach here") //Execution will not reach this lin
 
 Attempting to close an already closed channel causes panic.
 
-```bash
+```go
 ch := make(chan int)
 go func() {
    ch <- 10
@@ -540,7 +763,7 @@ close(ch)
 
 Attempting to send data to a closed channel causes panic.
 
-```bash
+```go
 ch := make(chan int, 2)
 close(ch1)
 ch <- 10
@@ -615,17 +838,17 @@ Complete reference: [https://go.dev/blog/pprof](https://go.dev/blog/pprof)
 
 1. **CPU Profile :**
    <span style="color:teal; ">Identifies the functions that require the most CPU time.</span>
-   ```bash
+   ```go
    go test -cpuprofile=cpu.out
    ```
 2. **Heap Profile :**
    <span style="color:teal; ">Identifies the statements responsible for allocating the most memory.</span>
-   ```bash
+   ```go
    go test -memprofile=memory.out
    ```
 3. **Block Profile :**
    <span style="color:teal; ">Identifies the operations responsible for blocking goroutines the longest.</span>
-   ```bash
+   ```go
    go test -blockprofile=block.out
    ```
 
@@ -635,7 +858,7 @@ Complete reference: [https://go.dev/blog/pprof](https://go.dev/blog/pprof)
 
 To analyze the CPU profile, use the following command:
 
-```bash
+```go
 go tool pprof cpu.out
 ```
 
@@ -658,19 +881,19 @@ app.Use(pprof.New())
 To collect profiling data, use the following `curl` command to retrieve different types of profiles:
 
 1. <span style="color:blue; font-weight:bold;">CPU Profile:</span>
-   ```bash
+   ```go
    curl <server-endpoint>/debug/pprof/profile -o cpu.pprof
    ```
    <span style="color:orange;">alternatively,</span>
-   ```bash
+   ```go
    go tool pprof <server-endpoint>/debug/pprof/profile
    ```
 2. <span style="color:green; font-weight:bold;">Heap Profile:</span>
-   ```bash
+   ```go
    curl <server-endpoint>/debug/pprof/heap -o heap.pprof
    ```
 3. <span style="color:red; font-weight:bold;">Block Profile:</span>
-   ```bash
+   ```go
    curl <server-endpoint>/debug/pprof/block -o block.pprof
    ```
 
@@ -680,7 +903,7 @@ To collect profiling data, use the following `curl` command to retrieve differen
 
 Once you've obtained the `profiling` files, you can analyze them using `go tool pprof`:
 
-```bash
+```go
 go tool pprof cpu.pprof
 ```
 
@@ -688,29 +911,29 @@ go tool pprof cpu.pprof
 
 To generate a visual representation of the profiling data, you need to install Graphviz:
 
-```bash
+```go
 go install github.com/goccy/go-graphviz/cmd/dot@latest
 ```
 
 ### alternative
 
-```bash
+```go
 go tool pprof -web cpu.pprof
 ```
 
-```bash
+```go
 go tool pprof -text cpu.pprof
 ```
 
 To see a list if available options use
 
-```bash
+```go
 go tool pprof --help
 ```
 
 You can serve the profiling data via http server with
 
-```bash
+```go
 go tool pprof -http=:port profile.pb.gz
 ```
 
@@ -726,7 +949,7 @@ To collect tracing data, use the following `curl` command to retrieve traces
 
 <span style="color:blue; font-weight:bold;">Trace</span>
 
-```bash
+```go
 curl <server-endpoint>/debug/pprof/trace -o trace.out
 ```
 
@@ -736,7 +959,7 @@ Unlike pprof we donot have different types of traces
 
 The `go tool trace` command starts a local web server and opens a web-based interface with several views. Here are the key sections you can analyze:
 
-```bash
+```go
 go tool trace trace.out
 ```
 
@@ -750,6 +973,6 @@ go tool trace trace.out
 
 ## Integrate with Tests: Use go test to directly collect traces
 
-```bash
+```go
 go test -trace=trace.out
 ```
