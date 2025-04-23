@@ -349,63 +349,6 @@ runtime.GOMAXPROCS(runtime.NumCPU())
 ---
 This lets the Go scheduler distribute goroutines across multiple OS threads and cores, enabling true parallelism.CPU, then multiple goroutines would be run on same cpu core, making the execution concurrent, if there is more than one cpu core available we can run goroutines on each available core achieving parallelism
 
-## Detecting Data Race
-
-A datarace occurs whenever two go routines access the same shared resource concuurently and at least one
-of the access is a write
-
-```go
-go run -race main.go
-```
-
-Methods to prevent datarace
-
-1. Initialize variables and never modify it again
-2. Avoid accessing resources from multiple go routines, share variables using channels
-3. Using Mutex locks
-
-Simple Race Porgram
-
-```go
-package main
-
-var (
-	counter int
-	wg      sync.WaitGroup
-)
-
-func main() {
-	wg.Add(2)
-	go Increment()
-	go Increment()
-	wg.Wait()
-	fmt.Println("Counter:", counter)
-}
-
-func Increment() {
-	for i := 0; i < 1000; i++ {
-		counter++ // Race condition: multiple goroutines modifying counter
-	}
-	wg.Done()
-}
-```
-
-```go
-go run -race main.go
-```
-
-Race Detector records all access to the shared resources ocuurred during the execution along with the identity of the go routines that read or wrote the variable.
-
----
-
-## Go Routine leak
-
-Go Routine leak is a situation when more than one go routine is running and synchronizing over an unbuffered channel, and one go routine is writing into a channel frm which no go routine would ever receive.
-
-Leaked go routines are not automatically collected by GC
-
----
-
 ## Memory Synchronization
 
 Many processors have its own local cache of main memory
@@ -521,7 +464,7 @@ A **data race** occurs whenever two goroutines access the same shared resource c
 
 ---
 
-## Detecting Data Races
+### Detecting Data Races
 
 Use the Go race detector:
 
@@ -529,7 +472,7 @@ Use the Go race detector:
 go run -race main.go
 ```
 
-## Methods to Prevent Data Races
+### Methods to Prevent Data Races
 
 1. **Initialize Variables and Never Modify Again**
 2. **Avoid Accessing Shared Resources from Multiple Goroutines**, share data using **channels** instead.
@@ -538,14 +481,14 @@ go run -race main.go
 
 ---
 
-## How the Race Detector Works
+### How the Race Detector Works
 
 - Records **all accesses** to shared resources during execution.
 - Tracks the **identity of goroutines** that read or wrote to the variables.
 
 ---
 
-## Example: Race Condition
+### Example: Race Condition
 
 ```go
 package main
@@ -575,6 +518,58 @@ func Increment() {
     wg.Done()
 }
 ```
+
+---
+
+```go
+go run -race main.go
+```
+
+**Methods to prevent datarace**
+
+1. Initialize variables and never modify it again
+2. Avoid accessing resources from multiple go routines, share variables using channels
+3. Using Mutex locks
+
+Simple Race Porgram
+
+```go
+package main
+
+var (
+	counter int
+	wg      sync.WaitGroup
+)
+
+func main() {
+	wg.Add(2)
+	go Increment()
+	go Increment()
+	wg.Wait()
+	fmt.Println("Counter:", counter)
+}
+
+func Increment() {
+	for i := 0; i < 1000; i++ {
+		counter++ // Race condition: multiple goroutines modifying counter
+	}
+	wg.Done()
+}
+```
+
+```go
+go run -race main.go
+```
+
+Race Detector records all access to the shared resources ocuurred during the execution along with the identity of the go routines that read or wrote the variable.
+
+---
+
+## Go Routine leak
+
+Go Routine leak is a situation when more than one go routine is running and synchronizing over an unbuffered channel, and one go routine is writing into a channel frm which no go routine would ever receive.
+
+Leaked go routines are not automatically collected by GC
 
 ---
 
