@@ -347,7 +347,7 @@ import "runtime"
 runtime.GOMAXPROCS(runtime.NumCPU())
 ```
 ---
-This lets the Go scheduler distribute goroutines across multiple OS threads and cores, enabling true parallelism.CPU, then multiple goroutines would be run on same cpu core, making the execution concurrent, if there is more than one cpu core available we can run goroutines on each available core achieving parallelism
+This lets the Go scheduler distribute goroutines across multiple OS threads and cores, enabling true parallelism.If only one CPU, then multiple goroutines would be run on same cpu core, making the execution concurrent, if there is more than one cpu core available we can run goroutines on each available core achieving parallelism
 
 ## Memory Synchronization
 
